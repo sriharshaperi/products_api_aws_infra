@@ -39,3 +39,5 @@ This code snippet is a Terraform configuration block used to create an Amazon Vi
 cidr_block: this is a required argument that specifies the IP address range for the VPC. The value for this argument is obtained from the vpc_cidr variable, which is an array of IP address ranges.
 tags: this is an optional argument that allows you to assign metadata to the VPC resource in the form of key-value pairs. In this example, the VPC is assigned a Name tag with the value "vpc_1".
 The resource block creates an AWS VPC resource using the specified IP address range and metadata. Once the VPC is created, it can be used to launch EC2 instances, RDS instances, and other AWS resources within the VPC.
+
+## Github Actions Workflow
