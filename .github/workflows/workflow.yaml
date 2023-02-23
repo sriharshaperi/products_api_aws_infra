@@ -12,5 +12,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: terraform-fmt
+        uses: dflook/terraform-fmt@v1.29.1
+
       - name: terraform validate
         uses: dflook/terraform-validate@v1
