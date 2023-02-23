@@ -1,6 +1,6 @@
 variable "vpc_cidr" {
-  type        = list(string)
-  description = "Mulltiple CIDRs for vpcs in the same region"
+  type        = string
+  description = "CIDR for vpc in the given region"
 }
 
 variable "aws_region" {
@@ -33,14 +33,9 @@ variable "private_subnet_name" {
   description = "private subnet name"
 }
 
-variable "subnet_prefix_1" {
+variable "subnet_prefix" {
   type        = string
   description = "subnet prefix for all subnets under vpc 1"
-}
-
-variable "subnet_prefix_2" {
-  type        = string
-  description = "subnet prefix for all subnets under vpc 2"
 }
 
 variable "subnet_suffix" {
@@ -51,4 +46,24 @@ variable "subnet_suffix" {
 variable "public_route_table_cidr" {
   type        = string
   description = "public route table CIDR for all ipv4"
+}
+
+variable "aws_keypair_dev" {
+  description = " SSH keys to connect to EC2 Instance"
+  default     = "aws-dev-kp"
+}
+
+variable "instance_type" {
+  description = "instance type for EC2"
+  default     = "t2.micro"
+}
+
+variable "security_group" {
+  description = "Name of security group"
+  default     = "webapp-dev-sg"
+}
+
+variable "ec2_tag_name" {
+  description = "Tag Name of for EC2 instance"
+  default     = "ec2-webapp-dev"
 }
