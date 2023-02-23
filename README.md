@@ -32,6 +32,14 @@ This code snippet is a Terraform configuration block used to fetch data about th
 state: this is an optional argument that filters the availability zones based on their state. In this example, the value "available" is used to fetch only the availability zones that are currently available.
 The data source block fetches information about the availability zones that can be used to configure other Terraform resources in the same module or configuration file. For example, this data source can be used to configure an auto-scaling group to launch instances in multiple availability zones for better resiliency and fault tolerance.
 
+- Data source that retrieves the latest AMI (Amazon Machine Image) that matches the filter criteria specified by the user. In this case, the filter looks for an AMI with a name that starts with **webapp-ami-**
+
+## EC2 Terraform
+
+- **sg_webapp_dev** a AWS security group will be created that allows incoming traffic on ports 3000, 80, 22, and 443, and outgoing traffic on all ports. It is associated with the VPC (Virtual Private Cloud) specified by the user.
+
+- **ec2-webapp-dev** a EC2 instance with the specified AMI, instance type, and other parameters. It is associated with the specified subnet and security group. The root block device has a size of 50 GB and uses the gp2 volume type. The instance is also tagged with a name specified by the user
+
 ## Terraform AWS Resource Configuration
 
 This code snippet is a Terraform configuration block used to create an Amazon Virtual Private Cloud (VPC) resource in AWS. The aws_vpc resource block begins with the resource keyword, followed by the resource name, which in this case is "aws_vpc". The resource block then includes two arguments:
