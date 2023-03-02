@@ -24,6 +24,7 @@ resource "aws_instance" "ec2-webapp-dev" {
   tags = {
     Name = var.ec2_tag_name
   }
+  iam_instance_profile = aws_iam_instance_profile.s3_access_instance_profile.name
 
   #Sending User Data to EC2
   user_data = <<EOT
