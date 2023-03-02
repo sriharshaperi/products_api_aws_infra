@@ -6,51 +6,6 @@ data "aws_ami" "latest_ami" {
   }
 }
 
-resource "aws_security_group" "sg_webapp_dev" {
-  name        = var.security_group
-  description = "security group for ec2-webapp-dev"
-  vpc_id      = aws_vpc.vpc.id
-
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = var.security_group
-  }
-}
-
 resource "aws_instance" "ec2-webapp-dev" {
   count                       = 1
   ami                         = data.aws_ami.latest_ami.id
@@ -58,13 +13,61 @@ resource "aws_instance" "ec2-webapp-dev" {
   instance_type               = var.instance_type
   associate_public_ip_address = true
   subnet_id                   = aws_subnet.public_subnets[0].id
-  vpc_security_group_ids      = [aws_security_group.sg_webapp_dev.id]
+  vpc_security_group_ids      = [aws_security_group.application.id]
+  ebs_optimized               = false
   root_block_device {
-    volume_size = 50
-    volume_type = "gp2"
+    volume_size           = 50
+    volume_type           = "gp2"
+    delete_on_termination = true
   }
   disable_api_termination = false
   tags = {
     Name = var.ec2_tag_name
   }
+
+  #Sending User Data to EC2
+  user_data = <<EOT
+#!/bin/bash
+cat <<EOF > /etc/systemd/system/webapp.service
+[Unit]
+Description=Webapp Service
+After=network.target
+
+[Service]
+Environment="NODE_ENV=dev"
+Environment="PORT=3000"
+Environment="DIALECT=mysql"
+Environment="DB_HOST=${element(split(":", aws_db_instance.rds_instance.endpoint), 0)}"
+Environment="DB_USERNAME=${aws_db_instance.rds_instance.username}"
+Environment="DB_PASSWORD=${aws_db_instance.rds_instance.password}"
+Environment="DB_NAME=${aws_db_instance.rds_instance.db_name}"
+Environment="S3_BUCKET_NAME=${aws_s3_bucket.webapp-s3.bucket}"
+Environment="AWS_REGION=${var.aws_region}"
+
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/webapp
+ExecStart=/usr/bin/node server-listener.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target" > /etc/systemd/system/webapp.service
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl start webapp.service
+sudo systemctl enable webapp.service
+
+echo 'export NODE_ENV=dev' >> /home/ec2-user/.bashrc,
+echo 'export PORT=3000' >> /home/ec2-user/.bashrc,
+echo 'export DIALECT=mysql' >> /home/ec2-user/.bashrc,
+echo 'export DB_HOST=${element(split(":", aws_db_instance.rds_instance.endpoint), 0)}' >> /home/ec2-user/.bashrc,
+echo 'export DB_USERNAME=${aws_db_instance.rds_instance.username}' >> /home/ec2-user/.bashrc,
+echo 'export DB_PASSWORD=${aws_db_instance.rds_instance.password}' >> /home/ec2-user/.bashrc,
+echo 'export DB_NAME=${aws_db_instance.rds_instance.db_name}' >> /home/ec2-user/.bashrc,
+echo 'export S3_BUCKET_NAME=${aws_s3_bucket.webapp-s3.bucket}' >> /home/ec2-user/.bashrc,
+echo 'export AWS_REGION=${var.aws_region}' >> /home/ec2-user/.bashrc,
+source /home/ec2-user/.bashrc
+EOT
+
 }

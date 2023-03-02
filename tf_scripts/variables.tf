@@ -60,10 +60,29 @@ variable "instance_type" {
 
 variable "security_group" {
   description = "Name of security group"
-  default     = "webapp-dev-sg"
+  default     = "application"
 }
 
 variable "ec2_tag_name" {
   description = "Tag Name of for EC2 instance"
   default     = "ec2-webapp-dev"
+}
+
+variable "DB_IDENTIFIER" {
+  type = string
+}
+
+variable "DB_NAME" {
+  type = string
+}
+
+variable "DB_USERNAME" {
+  type = string
+}
+variable "DB_PASSWORD" {
+  type = string
+}
+
+variable "DB_HOST" {
+  type = string
 }
