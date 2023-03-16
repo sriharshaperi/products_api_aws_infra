@@ -83,18 +83,18 @@ variable "DB_PASSWORD" {
   type = string
 }
 
-variable "r53_zone_id" {
+variable "r53_dev_zone_id" {
   type = string
 }
 
-variable "r53_name" {
+variable "r53_prod_zone_id" {
   type = string
 }
 
-variable "r53_type" {
+variable "r53_dev_name" {
   type = string
 }
 
-variable "r53_ttl" {
+variable "r53_prod_name" {
   type = string
 }

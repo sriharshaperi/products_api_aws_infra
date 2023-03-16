@@ -7,7 +7,7 @@ data "aws_ami" "latest_ami" {
 }
 
 resource "aws_instance" "ec2-webapp-dev" {
-  count                       = 1
+  # count                       = 1
   ami                         = data.aws_ami.latest_ami.id
   key_name                    = var.aws_keypair_dev
   instance_type               = var.instance_type
