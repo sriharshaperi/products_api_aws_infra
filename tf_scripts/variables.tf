@@ -50,7 +50,7 @@ variable "public_route_table_cidr" {
 
 variable "aws_keypair_dev" {
   description = " SSH keys to connect to EC2 Instance"
-  default     = "aws-dev-kp"
+  default     = "aws-demo-kp"
 }
 
 variable "instance_type" {
@@ -83,6 +83,18 @@ variable "DB_PASSWORD" {
   type = string
 }
 
-variable "DB_HOST" {
+variable "r53_zone_id" {
+  type = string
+}
+
+variable "r53_name" {
+  type = string
+}
+
+variable "r53_type" {
+  type = string
+}
+
+variable "r53_ttl" {
   type = string
 }
