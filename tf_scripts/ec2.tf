@@ -69,6 +69,9 @@ echo 'export DB_NAME=${aws_db_instance.rds_instance.db_name}' >> /home/ec2-user/
 echo 'export S3_BUCKET_NAME=${aws_s3_bucket.webapp-s3.bucket}' >> /home/ec2-user/.bashrc,
 echo 'export AWS_REGION=${var.aws_region}' >> /home/ec2-user/.bashrc,
 source /home/ec2-user/.bashrc
+
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/tmp/config.json
+
 EOT
 
 }
