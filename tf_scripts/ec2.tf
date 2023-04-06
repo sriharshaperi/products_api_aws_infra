@@ -27,51 +27,52 @@ resource "aws_instance" "ec2-webapp-dev" {
   iam_instance_profile = aws_iam_instance_profile.s3_access_instance_profile.name
 
   #Sending User Data to EC2
-  user_data = <<EOT
-#!/bin/bash
-cat <<EOF > /etc/systemd/system/webapp.service
-[Unit]
-Description=Webapp Service
-After=network.target
+  #   user_data = <<EOT
+  # #!/bin/bash
+  # cat <<EOF > /etc/systemd/system/webapp.service
+  # [Unit]
+  # Description=Webapp Service
+  # After=network.target
 
-[Service]
-Environment="NODE_ENV=dev"
-Environment="PORT=3000"
-Environment="DIALECT=mysql"
-Environment="DB_HOST=${element(split(":", aws_db_instance.rds_instance.endpoint), 0)}"
-Environment="DB_USERNAME=${aws_db_instance.rds_instance.username}"
-Environment="DB_PASSWORD=${aws_db_instance.rds_instance.password}"
-Environment="DB_NAME=${aws_db_instance.rds_instance.db_name}"
-Environment="S3_BUCKET_NAME=${aws_s3_bucket.webapp-s3.bucket}"
-Environment="AWS_REGION=${var.aws_region}"
+  # [Service]
+  # Environment="NODE_ENV=dev"
+  # Environment="PORT=3000"
+  # Environment="DIALECT=mysql"
+  # Environment="DB_HOST=${element(split(":", aws_db_instance.rds_instance.endpoint), 0)}"
+  # Environment="DB_USERNAME=${aws_db_instance.rds_instance.username}"
+  # Environment="DB_PASSWORD=${aws_db_instance.rds_instance.password}"
+  # Environment="DB_NAME=${aws_db_instance.rds_instance.db_name}"
+  # Environment="S3_BUCKET_NAME=${aws_s3_bucket.webapp-s3.bucket}"
+  # Environment="AWS_REGION=${var.aws_region}"
 
-Type=simple
-User=ec2-user
-WorkingDirectory=/home/ec2-user/webapp
-ExecStart=/usr/bin/node server-listener.js
-Restart=on-failure
+  # Type=simple
+  # User=ec2-user
+  # WorkingDirectory=/home/ec2-user/webapp
+  # ExecStart=/usr/bin/node server-listener.js
+  # Restart=on-failure
 
-[Install]
-WantedBy=multi-user.target" > /etc/systemd/system/webapp.service
-EOF
+  # [Install]
+  # WantedBy=multi-user.target" > /etc/systemd/system/webapp.service
+  # EOF
 
-sudo systemctl daemon-reload
-sudo systemctl start webapp.service
-sudo systemctl enable webapp.service
+  # sudo systemctl daemon-reload
+  # sudo systemctl start webapp.service
+  # sudo systemctl enable webapp.service
 
-echo 'export NODE_ENV=dev' >> /home/ec2-user/.bashrc,
-echo 'export PORT=3000' >> /home/ec2-user/.bashrc,
-echo 'export DIALECT=mysql' >> /home/ec2-user/.bashrc,
-echo 'export DB_HOST=${element(split(":", aws_db_instance.rds_instance.endpoint), 0)}' >> /home/ec2-user/.bashrc,
-echo 'export DB_USERNAME=${aws_db_instance.rds_instance.username}' >> /home/ec2-user/.bashrc,
-echo 'export DB_PASSWORD=${aws_db_instance.rds_instance.password}' >> /home/ec2-user/.bashrc,
-echo 'export DB_NAME=${aws_db_instance.rds_instance.db_name}' >> /home/ec2-user/.bashrc,
-echo 'export S3_BUCKET_NAME=${aws_s3_bucket.webapp-s3.bucket}' >> /home/ec2-user/.bashrc,
-echo 'export AWS_REGION=${var.aws_region}' >> /home/ec2-user/.bashrc,
-source /home/ec2-user/.bashrc
+  # echo 'export NODE_ENV=dev' >> /home/ec2-user/.bashrc,
+  # echo 'export PORT=3000' >> /home/ec2-user/.bashrc,
+  # echo 'export DIALECT=mysql' >> /home/ec2-user/.bashrc,
+  # echo 'export DB_HOST=${element(split(":", aws_db_instance.rds_instance.endpoint), 0)}' >> /home/ec2-user/.bashrc,
+  # echo 'export DB_USERNAME=${aws_db_instance.rds_instance.username}' >> /home/ec2-user/.bashrc,
+  # echo 'export DB_PASSWORD=${aws_db_instance.rds_instance.password}' >> /home/ec2-user/.bashrc,
+  # echo 'export DB_NAME=${aws_db_instance.rds_instance.db_name}' >> /home/ec2-user/.bashrc,
+  # echo 'export S3_BUCKET_NAME=${aws_s3_bucket.webapp-s3.bucket}' >> /home/ec2-user/.bashrc,
+  # echo 'export AWS_REGION=${var.aws_region}' >> /home/ec2-user/.bashrc,
+  # source /home/ec2-user/.bashrc
 
-sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/tmp/config.json
+  # sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/tmp/config.json
 
-EOT
+  # EOT
 
+  user_data = local.user_data
 }
