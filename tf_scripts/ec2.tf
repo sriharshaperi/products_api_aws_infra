@@ -26,6 +26,15 @@ resource "aws_instance" "ec2-webapp-dev" {
   }
   iam_instance_profile = aws_iam_instance_profile.s3_access_instance_profile.name
 
+  ebs_block_device {
+    device_name           = "/dev/xvda"
+    encrypted             = true
+    kms_key_id            = aws_kms_key.encryption_key_ebs.arn
+    delete_on_termination = true
+    volume_size           = 50
+    volume_type           = "gp2"
+  }
+
   #Sending User Data to EC2
   #   user_data = <<EOT
   # #!/bin/bash

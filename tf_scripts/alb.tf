@@ -22,11 +22,11 @@ resource "aws_security_group" "load_balancer_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
+  egress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {
@@ -61,13 +61,20 @@ resource "aws_lb" "webapp_alb" {
   subnets            = [for subnet in aws_subnet.public_subnets : subnet.id]
 }
 
+data "aws_acm_certificate" "prod_pericsye_me_certificate" {
+  domain   = "prod.pericsye.me"
+  statuses = ["ISSUED"]
+}
+
 resource "aws_lb_listener" "webapp_alb_listener" {
   load_balancer_arn = aws_lb.webapp_alb.arn
-  port              = 80
-  protocol          = "HTTP"
+  port              = 443
+  protocol          = "HTTPS"
+  certificate_arn   = "arn:aws:acm:us-east-1:388356826857:certificate/01d4a586-676d-4494-995e-51614ecb6a3f"
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.webapp_tg.arn
   }
+  ssl_policy = "ELBSecurityPolicy-2016-08"
 }

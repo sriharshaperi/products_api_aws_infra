@@ -1,25 +1,62 @@
-resource "aws_launch_configuration" "asg_launch_config" {
-  name_prefix                 = "asg_launch_config"
-  image_id                    = aws_instance.ec2-webapp-dev.ami
-  instance_type               = var.instance_type
-  key_name                    = var.aws_keypair_dev
-  associate_public_ip_address = true
-  user_data                   = base64encode(local.user_data)
-  iam_instance_profile        = aws_iam_instance_profile.s3_access_instance_profile.name
-  security_groups             = [aws_security_group.application.id]
+resource "aws_launch_template" "asg_launch_template" {
+  name = "asg-launch-template"
+  # vpc_security_group_ids = [aws_security_group.application.id]
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.application.id]
+  }
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size           = 50
+      volume_type           = "gp2"
+      delete_on_termination = true
+      encrypted             = true
+      kms_key_id            = aws_kms_key.encryption_key_ebs.arn
+    }
+  }
+
+  image_id      = aws_instance.ec2-webapp-dev.ami
+  instance_type = var.instance_type
+  key_name      = var.aws_keypair_dev
+  user_data     = base64encode(local.user_data)
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.s3_access_instance_profile.arn
+  }
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = var.ec2_tag_name
+    }
+  }
+
   lifecycle {
     create_before_destroy = true
   }
 }
 
+# resource "aws_launch_configuration" "asg_launch_config" {
+#   name_prefix                 = "asg_launch_config"
+#   image_id                    = aws_instance.ec2-webapp-dev.ami
+#   instance_type               = var.instance_type
+#   key_name                    = var.aws_keypair_dev
+#   associate_public_ip_address = true
+#   user_data                   = base64encode(local.user_data)
+#   iam_instance_profile        = aws_iam_instance_profile.s3_access_instance_profile.name
+#   security_groups             = [aws_security_group.application.id]
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
+
 # CloudWatch metric alarm for CPU usage scale up policy
 resource "aws_cloudwatch_metric_alarm" "cpu_usage_scale_up" {
   alarm_name          = "cpu-usage-scale-up"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "2"
+  evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "30"
+  period              = "60"
   statistic           = "Average"
   threshold           = "5"
   alarm_description   = "Scale up when average CPU usage is above 5%"
@@ -34,11 +71,11 @@ resource "aws_cloudwatch_metric_alarm" "cpu_usage_scale_up" {
 # CloudWatch metric alarm for CPU usage scale down policy
 resource "aws_cloudwatch_metric_alarm" "cpu_usage_scale_down" {
   alarm_name          = "cpu-usage-scale-down"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "2"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "30"
+  period              = "60"
   statistic           = "Average"
   threshold           = "3"
   alarm_description   = "Scale down when average CPU usage is below 3%"
@@ -51,13 +88,18 @@ resource "aws_cloudwatch_metric_alarm" "cpu_usage_scale_down" {
 }
 
 resource "aws_autoscaling_group" "webapp_asg" {
-  name_prefix          = "webapp_asg"
-  launch_configuration = aws_launch_configuration.asg_launch_config.id
-  min_size             = 1
-  max_size             = 3
-  desired_capacity     = 1
-  vpc_zone_identifier  = [for subnet in aws_subnet.private_subnets : subnet.id]
-  target_group_arns    = [aws_lb_target_group.webapp_tg.arn]
+  name = "webapp_asg"
+  # launch_configuration = aws_launch_configuration.asg_launch_config.id
+  launch_template {
+    id      = aws_launch_template.asg_launch_template.id
+    version = "$Latest"
+  }
+
+  min_size            = 1
+  max_size            = 3
+  desired_capacity    = 1
+  vpc_zone_identifier = [for subnet in aws_subnet.private_subnets : subnet.id]
+  target_group_arns   = [aws_lb_target_group.webapp_tg.arn]
 
   tags = [
     {
@@ -66,6 +108,9 @@ resource "aws_autoscaling_group" "webapp_asg" {
       propagate_at_launch = true
     }
   ]
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
