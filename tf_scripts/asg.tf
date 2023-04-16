@@ -4,6 +4,7 @@ resource "aws_launch_template" "asg_launch_template" {
   network_interfaces {
     associate_public_ip_address = true
     security_groups             = [aws_security_group.application.id]
+    # subnet_id                   = aws_subnet.public_subnets[0].id
   }
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -16,10 +17,12 @@ resource "aws_launch_template" "asg_launch_template" {
     }
   }
 
-  image_id      = aws_instance.ec2-webapp-dev.ami
-  instance_type = var.instance_type
-  key_name      = var.aws_keypair_dev
-  user_data     = base64encode(local.user_data)
+  image_id                = data.aws_ami.latest_ami.id
+  instance_type           = var.instance_type
+  key_name                = var.aws_keypair_dev
+  user_data               = base64encode(local.user_data)
+  disable_api_termination = false
+  ebs_optimized           = false
   iam_instance_profile {
     arn = aws_iam_instance_profile.s3_access_instance_profile.arn
   }
@@ -98,9 +101,9 @@ resource "aws_autoscaling_group" "webapp_asg" {
   min_size            = 1
   max_size            = 3
   desired_capacity    = 1
-  vpc_zone_identifier = [for subnet in aws_subnet.private_subnets : subnet.id]
+  vpc_zone_identifier = [for subnet in aws_subnet.public_subnets : subnet.id]
   target_group_arns   = [aws_lb_target_group.webapp_tg.arn]
-
+  health_check_type   = "EC2"
   tags = [
     {
       key                 = "Name"

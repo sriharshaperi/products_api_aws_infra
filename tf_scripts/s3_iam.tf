@@ -37,12 +37,16 @@ resource "aws_iam_policy" "s3_access_policy" {
     "Statement" : [
       {
         "Action" : [
+          "s3:ListAllMyBuckets",
+          "s3:ListBucket",
           "s3:GetObject",
-          "s3:GetObjectAcl",
           "s3:PutObject",
-          "s3:PutObjectAcl",
           "s3:DeleteObject",
-          "s3:ListBucket"
+          "s3:PutObjectAcl",
+          "s3:ListMultipartUploadParts",
+          "s3:AbortMultipartUpload",
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
         ],
         "Effect" : "Allow",
         "Resource" : [

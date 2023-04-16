@@ -18,6 +18,16 @@ variable "public_tag" {
   description = "public tag"
 }
 
+variable "certificate_arn" {
+  type        = string
+  description = "cerificate arn"
+}
+
+variable "ssl_policy" {
+  type        = string
+  description = "ssl_policy for accepting HTTPS traffic"
+}
+
 variable "public_subnet_name" {
   type        = string
   description = "public subnet name"
